@@ -124,7 +124,7 @@ sentry:
     vstsLimitedScopes: true
 
   worker:
-    replicas: 3
+    replicas: 1
     # concurrency: 4
     env: []
     resources: {}
@@ -440,7 +440,7 @@ snuba:
 hooks:
   enabled: true
   removeOnSuccess: true
-  activeDeadlineSeconds: 100
+  activeDeadlineSeconds: 400
   shareProcessNamespace: false
   dbCheck:
     image:
@@ -570,7 +570,7 @@ service:
   externalPort: 9000
   annotations: {}
   # externalIPs:
-  # - 192.168.0.1
+  #   - 192.168.1.32
   # loadBalancerSourceRanges: []
 
 # https://github.com/settings/apps (Create a Github App)
@@ -603,7 +603,7 @@ nginx:
   resources: {}
   replicaCount: 1
   service:
-    type: ClusterIP
+    type: NodePort
     ports:
       http: 80
   ## Use this to enable an extra service account
@@ -699,15 +699,16 @@ config:
 clickhouse:
   enabled: true
   clickhouse:
-    imageVersion: "20.8.19.4"
+    image: "altinity/clickhouse-server"
+    imageVersion: "21.6.1.6734-testing-arm"
     configmap:
       remote_servers:
-        internal_replication: true
+        internal_replication: false
         replica:
           backup:
             enabled: false
       zookeeper_servers:
-        enabled: true
+        enabled: false
         config:
           - index: "clickhouse"
             hostTemplate: "{{ .Release.Name }}-zookeeper-clickhouse"
@@ -730,7 +731,7 @@ clickhouse:
         enabled: true
         accessModes:
           - "ReadWriteOnce"
-        storage: "30Gi"
+        storage: "1Gi"
 
   ## Use this to enable an extra service account
   # serviceAccount:
@@ -762,18 +763,18 @@ externalClickhouse:
 zookeeper:
   enabled: true
   nameOverride: zookeeper-clickhouse
-  replicaCount: 3
+  replicaCount: 1
 
 # Settings for Kafka.
 # See https://github.com/bitnami/charts/tree/master/bitnami/kafka
 kafka:
   enabled: true
-  replicaCount: 3
+  replicaCount: 1
   allowPlaintextListener: true
-  defaultReplicationFactor: 3
-  offsetsTopicReplicationFactor: 3
-  transactionStateLogReplicationFactor: 3
-  transactionStateLogMinIsr: 3
+  defaultReplicationFactor: 1
+  offsetsTopicReplicationFactor: 1
+  transactionStateLogReplicationFactor: 1
+  transactionStateLogMinIsr: 1
   # 50 MB
   maxMessageBytes: "50000000"
   # 50 MB
@@ -836,6 +837,7 @@ postgresql:
   enabled: true
   nameOverride: sentry-postgresql
   postgresqlUsername: postgres
+  postgresqlPassword: postgres
   postgresqlDatabase: sentry
   replication:
     enabled: false
@@ -863,7 +865,7 @@ externalPostgresql:
 
 rabbitmq:
   ## If disabled, Redis will be used instead as the broker.
-  enabled: true
+  enabled: false
   clustering:
     forceBoot: true
     rebalance: true
